@@ -301,14 +301,14 @@ class DynamicConditionsPublic {
 
 
         //prevent shortcodes from execution
-        $this->shortcodeTags += $GLOBALS['shortcode_tags'];
+        $this->shortcodeTags = $GLOBALS['shortcode_tags'];
         $GLOBALS['shortcode_tags'] = [];
 
         ob_start();
         $this->widgetCache[$section->get_id()] = [
             'isHidden' => true,
             'settings' => $settings,
-            'ob_level' =>  ob_get_level(),
+            #'ob_level' => ob_get_level(),
         ];
     }
 
@@ -324,9 +324,9 @@ class DynamicConditionsPublic {
             return;
         }
 
-        while (ob_get_level() > $this->widgetCache[$section->get_id()]['ob_level']) {
+        /*while ( ob_get_level() > $this->widgetCache[$section->get_id()]['ob_level'] ) {
             ob_end_flush();
-        }
+        }*/
 
         $content = ob_get_clean();
         $matchesLinkTags = [];
@@ -372,6 +372,9 @@ class DynamicConditionsPublic {
         }
 
         if ( $this->getMode() === 'edit' ) {
+            return false;
+        }
+        if (filter_input(INPUT_SERVER, 'REQUEST_METHOD') === 'POST') {
             return false;
         }
 
@@ -659,8 +662,12 @@ class DynamicConditionsPublic {
 
     /**
      * Parse shortcode if active
+     * @return mixed
      */
-    private function parseShortcode( ?string $value, array $settings = [] ): ?string {
+    private function parseShortcode( $value, array $settings = [] ) {
+        if ( !is_string( $value ) ) {
+            return $value;
+        }
         if ( empty( $settings['dynamicconditions_parse_shortcodes'] ) ) {
             return $value;
         }
